@@ -1,16 +1,89 @@
 ---
+import Checkbox from "../components/Checkbox.astro";
 
+export type Reading = {
+  id: number;
+  date: string;
+  passage: string;
+  checked?: boolean;
+};
+
+const res = await fetch(`${Astro.url}/api/getReadings.json`);
+const readings: Reading[] = await res.json();
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Bible Reading Tracker</title>
+  </head>
+  <body>
+    <div id="notify-wrapper" class="fixed bottom-6 right-6 grid gap-4 z-50">
+    </div>
+    <div class="container py-6 grid gap-6">
+      <h1
+        class="text-4xl font-bold text-blue-500 border-b-2 border-blue-500 pb-2"
+      >
+        Reading Tracker
+      </h1>
+      <div class="grid gap-4 grid-cols-autofill" id="reading-wrapper">
+        {readings.map((r) => <Checkbox reading={r} />)}
+      </div>
+    </div>
+    <script>
+      const toastWrapper = document.querySelector("#notify-wrapper");
+      function addToast({
+        message,
+        success,
+        toastId,
+      }: {
+        message: string;
+        success: boolean;
+        toastId: string;
+      }) {
+        const newToast = `<div id="${toastId}" class="p-4 rounded-md border-2 border-blue-500 bg-white grid gap-1"><p class="${!success && "text-red-500"}">${message}</p></div>`;
+        toastWrapper?.insertAdjacentHTML("beforeend", newToast);
+
+        const toastInDom = document.querySelector(`#${toastId}`);
+
+        setTimeout(() => {
+          toastInDom?.remove();
+        }, 2000);
+      }
+
+      const readings = document.querySelector(
+        "#reading-wrapper"
+      ) as HTMLDivElement;
+      readings.addEventListener("click", async (e) => {
+        if (e.target?.getAttribute("type") === "checkbox") {
+          const reading = e.target as HTMLInputElement;
+          // 1. check if it is already checked
+          const isChecked = JSON.parse(
+            reading.getAttribute("checked") as string
+          );
+
+          // 2. send new status to db
+          const res = await fetch(`/api/patchReadings.json`, {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify({
+              id: reading.id,
+              checked: !isChecked,
+            }),
+          });
+          const { success } = await res.json();
+          addToast({
+            message: success ? "Reading updated" : "Oh no! Error!",
+            success,
+            toastId: `toast-${reading.id}`,
+          });
+        }
+      });
+    </script>
+  </body>
 </html>
