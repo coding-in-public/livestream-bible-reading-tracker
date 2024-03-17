@@ -1,4 +1,20 @@
-# Astro Starter Kit: Minimal
+# Bible Reading Tracker
+
+## Quick Start
+
+This assumes you have Node.js and pnpm installed.
+
+1. Run `pnpm install` to install dependencies (a one-time task on your computer).
+1. Run `pnpm run server` to start the server that delivers the JSON that this app uses.
+1. Run `pnpm dev` to start the development server.
+
+## Colophon
+
+This project was bootstrapped with [Astro](https://astro.build/) (*see the standard ReadMe content below*).
+
+----
+
+## Astro Starter Kit: Minimal
 
 ```sh
 npm create astro@latest -- --template minimal
